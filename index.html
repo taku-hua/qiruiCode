@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>密码获取工具</title>
+  <!-- 引入WindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome图标 -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义主题，模拟苹果风格 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'apple-gray': '#F5F5F7',
+            'apple-blue': '#0071E3',
+            'apple-dark': '#1D1D1F',
+            'apple-light': '#FFFFFF',
+            'apple-border': '#D2D2D7',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+          },
+          boxShadow: {
+            'apple': '0 4px 20px rgba(0, 0, 0, 0.08)',
+            'apple-hover': '0 8px 30px rgba(0, 0, 0, 0.12)',
+          }
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.7);
+      }
+      .text-balance {
+        text-wrap: balance;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-apple-gray min-h-screen flex items-center justify-center p-4 font-sans text-apple-dark">
+  <!-- 主容器 -->
+  <div class="w-full max-w-md">
+    <!-- 卡片容器 -->
+    <div class="bg-apple-light rounded-2xl shadow-apple transition-all duration-300 hover:shadow-apple-hover overflow-hidden">
+      <!-- 顶部标题区 -->
+      <div class="p-6 border-b border-apple-border">
+        <h1 class="text-[clamp(1.5rem,3vw,1.8rem)] font-semibold text-center">密码获取工具</h1>
+        <p class="text-sm text-gray-500 text-center mt-2" id="current-date"></p>
+      </div>
+      
+      <!-- 密码显示区 -->
+      <div class="p-8 flex flex-col items-center justify-center">
+        <div class="w-16 h-16 rounded-full bg-apple-blue/10 flex items-center justify-center mb-6">
+          <i class="fa fa-key text-2xl text-apple-blue"></i>
+        </div>
+        
+        <div class="w-full mb-6 relative">
+          <input type="text" id="password-display" readonly 
+                 class="w-full text-[clamp(1.8rem,5vw,2.2rem)] font-mono text-center py-4 px-4 bg-apple-gray rounded-xl border border-apple-border focus:outline-none focus:ring-2 focus:ring-apple-blue/50 transition-all"
+                 placeholder="计算中...">
+          <button id="copy-btn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-apple-blue transition-colors">
+            <i class="fa fa-copy"></i>
+          </button>
+        </div>
+        
+        <div class="w-full bg-apple-gray/50 rounded-xl p-4 text-sm text-gray-600">
+          <p class="mb-2"><span class="font-medium">计算方式：</span>日期末尾数字对应的常量 + 日期数值</p>
+          <p id="calculation-details" class="text-center font-medium"></p>
+        </div>
+      </div>
+      
+      <!-- 底部信息区 -->
+      <div class="p-4 bg-apple-gray/30 text-center text-xs text-gray-500">
+        <p>页面加载或刷新时自动重新计算</p>
+      </div>
+    </div>
+    
+    <!-- 复制成功提示 -->
+    <div id="copy-toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-apple-dark text-white px-4 py-2 rounded-full text-sm opacity-0 transition-opacity duration-300 pointer-events-none">
+      已复制到剪贴板
+    </div>
+  </div>
+
+  <script>
+    // 常量定义
+    const constants = [
+      213518, // Constant0
+      658035, // Constant1
+      235657, // Constant2
+      567534, // Constant3
+      647825, // Constant4
+      234700, // Constant5
+      127347, // Constant6
+      648924, // Constant7
+      733782, // Constant8
+      553456  // Constant9
+    ];
+    
+    // 获取当前日期并计算密码
+    function calculatePassword() {
+      const now = new Date();
+      
+      // 格式化日期：年、月、日（补零）
+      const year = now.getFullYear().toString().slice(-2); // 取年份后两位
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      
+      // 显示完整日期
+      const fullDate = `${now.getFullYear()}/${month}/${day}`;
+      document.getElementById('current-date').textContent = fullDate;
+      
+      // 计算日期数值（如250110）
+      const dateNumber = parseInt(year + month + day, 10);
+      
+      // 获取日期末尾数字（日的最后一位）
+      const lastDigit = parseInt(day.slice(-1), 10);
+      
+      // 获取对应的常量
+      const constant = constants[lastDigit];
+      
+      // 计算密码
+      const password = constant + dateNumber;
+      
+      // 显示结果
+      document.getElementById('password-display').value = password;
+      
+      // 显示计算详情
+      document.getElementById('calculation-details').textContent = 
+        `${constant} + ${dateNumber} = ${password}`;
+    }
+    
+    // 复制密码到剪贴板
+    function copyToClipboard() {
+      const passwordInput = document.getElementById('password-display');
+      passwordInput.select();
+      document.execCommand('copy');
+      
+      // 显示提示
+      const toast = document.getElementById('copy-toast');
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 2000);
+    }
+    
+    // 页面加载完成后计算密码
+    document.addEventListener('DOMContentLoaded', () => {
+      calculatePassword();
+      document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+    });
+  </script>
+</body>
+</html>
